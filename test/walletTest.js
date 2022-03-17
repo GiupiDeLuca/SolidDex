@@ -23,10 +23,20 @@ contract("Dex", async (accounts) => {
       })
     );
   });
-  it("it should handle deposits correctly", async () => {
+  it("should handle deposits correctly", async () => {
     await link.approve(dex.address, 500);
     await dex.deposit(100, linkTicker);
     let balance = await dex.balances(accounts[0], linkTicker);
     assert.equal(balance.toNumber(), 100);
+  });
+  it("should handle faulty withdraws correctly", async () => {
+    await truffleAssert.reverts(
+      dex.withdraw(1000, linkTicker, { from: accounts[0] })
+    );
+  });
+  it("should handle withdraws correctly", async () => {
+    await truffleAssert.passes(
+      dex.withdraw(100, linkTicker, { from: accounts[0] })
+    );
   });
 });
