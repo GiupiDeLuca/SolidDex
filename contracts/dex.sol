@@ -20,12 +20,12 @@ contract Dex is Wallet {
         uint price;
     }
 
-    mapping(bytes32 => mapping(uint => Order[])) orderBook;
+    mapping(bytes32 => mapping(uint => Order[])) public  orderBook;
 
     function getOrders(bytes32 ticker, Side side) public view returns(Order[] memory) {
         return orderBook[ticker][uint(side)];
     }
 
-    function createLimitOrder() public {}
+    // function createLimitOrder() public {}
 
 }
