@@ -26,6 +26,6 @@ contract Dex is Wallet {
         return orderBook[ticker][uint(side)];
     }
 
-    // function createLimitOrder() public {}
+    // function createLimitOrder(Side side, bytes32 ticker, uint amount, uint price) public {}
 
 }
