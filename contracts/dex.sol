@@ -48,12 +48,30 @@ contract Dex is Wallet {
             Order(orderId, msg.sender, _side, _ticker, _amount, _price)
         );
 
-        // if (_side == Side.BUY) {
+        uint i = orders.length > 0 ? orders.length - 1 : 0;
 
-        // } else if (_side == Side.SELL) {
-
-        // }
-
+        while (i > 0) {
+            if (_side == Side.BUY) {
+                if (orders[i].price < orders[i-1].price) {
+                    break;
+                } else {
+                    Order memory tempOrder = orders[i-1];
+                    orders[i-1] = orders[i];
+                    orders[i] = tempOrder;
+                    i --;
+                }
+            } else if (_side == Side.SELL) {
+                if (orders[i].price > orders[i-1].price) {
+                    break;
+                } else {
+                    Order memory tempOrder = orders[i-1];
+                    orders[i-1] = orders[i];
+                    orders[i] = tempOrder;
+                    i --;
+                }
+            }
+        }
+        
         _orderIds.increment();
 
     }
