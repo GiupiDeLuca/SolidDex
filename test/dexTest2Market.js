@@ -35,9 +35,30 @@ contract("Dex", async (accounts) => {
 
   it("ensures the buyer has enough ETH when making a BUY market order", async () => {
     await truffleAssert.reverts(dex.createMarketOrder(0, linkTicker, 10, 1));
-    await dex.depositEth({value: 10});
+    await dex.depositEth({ value: 10 });
     await truffleAssert.passes(dex.createMarketOrder(0, linkTicker, 10, 1));
   });
 
-  
+  it("allows market orders to be sumbitted even if orderbook is empty", async () => {
+    const orders = await dex.getOrders(linkTicker, 0);
+    await dex.depositEth({ value: 10 });
+    while (orders.length >= 0) {
+      await truffleAssert.passes(
+        await truffleAssert.passes(dex.createMarketOrder(0, linkTicker, 10, 1))
+      );
+    }
+  });
+
+  it("should fill market orders until the orderbook is empty OR the order is 100% filled", async () => {});
+
+  it("ensures the ETH balance of the buyer decreases by the corresponding filled amount", async () => {
+    await dex.depositEth({ value: 100 });
+    await dex.createMarketOrder(0, linkTicker, 20, 1);
+    const ethBalance = await dex.balances(accounts[0], "ETH");
+    assert(ethBalance == 100 - 20 * 1);
+  });
+
+  it("ensures the TOKEN balances of the limit order sellers should decrease by the filled amount", async () => {});
+
+  it("should remove filled orders from the orderbook", async () => {});
 });
