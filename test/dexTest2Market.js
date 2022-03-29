@@ -49,7 +49,22 @@ contract("Dex", async (accounts) => {
     }
   });
 
-  it("should fill market orders until the orderbook is empty OR the order is 100% filled", async () => {});
+  it("should fill market orders until the orderbook is empty OR the order is 100% filled", async () => {
+      // create buy order
+      await dex.depositEth({value: 100});
+      await dex.createMarketOrder(0, linkTicker, 50, 1);
+      // create sell orders
+      await link.approve(dex.address, 1000);
+      await dex.addToken(linkTicker, link.address, {from: accounts[0]});
+      await dex.deposit(200, linkTicker);
+      await dex.createMarketOrder(1, linkTicker, 20, 1);
+      await dex.createMarketOrder(1, linkTicker, 20, 1);
+      // define buy and sell orderbook arrays
+      const buyBook = await dex.getOrders(linkTicker, 0);
+      const sellBook = await dex.getOrders(linkTicker, 1);
+      // buy book should have an order left for 10 link and sell book should be empty
+      assert (buyBook[0].amount == 10 && sellBook.length == 0);
+  });
 
   it("ensures the ETH balance of the buyer decreases by the corresponding filled amount", async () => {
     await dex.depositEth({ value: 100 });
@@ -83,16 +98,7 @@ contract("Dex", async (accounts) => {
       // define buy and sell orderbook arrays
       const buyBook = await dex.getOrders(linkTicker, 0);
       const sellBook = await dex.getOrders(linkTicker, 1);
-      // retrieve buy and sell order
-      const buyOrder = buyBook[0];
-      const sellOrder = sellBook[0];
-      // if buy order matches sell order price and quantity
-      if (buyOrder.price * buyOrder.amount == sellOrder.price * sellOrder.amount )
-      // pop() buy order from buy array 
-      buyBook.pop();
-      // pop() sell order from sell array
-      sellOrder.pop();
-      // assert length of both is 0  
+      // since orders are matching they should be removed
       assert (buyBook.length == 0 && sellBook.length == 0);
   });
 });
