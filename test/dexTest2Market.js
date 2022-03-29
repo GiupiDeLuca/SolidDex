@@ -23,6 +23,21 @@ contract("Dex", async (accounts) => {
   // the token balances of the limit order sellers should decrease with the filled amount
   // filled orders should be removed from the orderbook
 
-  
+  it("ensures the seller has enough tokens to create a SELL market order", async () => {
+    await truffleAssert.reverts(dex.createMarketOrder(1, linkTicker, 100, 1));
 
-})
+    await link.approve(dex.address, 500);
+    await dex.addToken(linkTicker, link.address, { from: accounts[0] });
+    await dex.deposit(100, linkTicker);
+
+    truffleAssert.passes(await dex.createMarketOrder(1, linkTicker, 100, 1));
+  });
+
+  it("ensures the buyer has enough ETH when making a BUY market order", async () => {
+    await truffleAssert.reverts(dex.createMarketOrder(0, linkTicker, 10, 1));
+    await dex.depositEth({value: 10});
+    await truffleAssert.passes(dex.createMarketOrder(0, linkTicker, 10, 1));
+  });
+
+  
+});

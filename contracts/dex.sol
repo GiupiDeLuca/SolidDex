@@ -76,4 +76,6 @@ contract Dex is Wallet {
 
     }
 
+    function createMarketOrder (Side _side, bytes32 _ticker, uint _amount, uint _price) public {}
+
 }
