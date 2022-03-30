@@ -201,7 +201,7 @@ contract("Dex", async (accounts) => {
 
     // create a sell limit order for 5 LINK
     await dex.deposit(50, linkTicker, { from: accounts[1] });
-    await dex.createLimitOrder(1, linkTicker, 5, 200);
+    await dex.createLimitOrder(1, linkTicker, 5, 200, {from: accounts[1]});
 
     // create a buy market order for 2 LINK
     await dex.depositEth({ value: 500 });
