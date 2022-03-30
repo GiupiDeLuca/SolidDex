@@ -103,7 +103,7 @@ contract("Dex", async (accounts) => {
     );
   });
 
-  it("market orders should be filled unitl orderbook is empty", async () => {
+  it("market orders should be filled until orderbook is empty", async () => {
     // create more limit orders to populate the sell order book
     dex.createLimitOrder(1, linkTicker, 5, 300, { from: accounts[1] });
     dex.createLimitOrder(1, linkTicker, 5, 400, { from: accounts[2] });
@@ -119,9 +119,9 @@ contract("Dex", async (accounts) => {
 
   it("ensures the ETH balance of the buyer decreases by the corresponding filled amount", async () => {
     // account 1 approves dex
-    link.approve(dex.address, 100, { from: accounts[1] });
+    link.approve(dex.address, 200, { from: accounts[1] });
     // account 1 deposits in dex
-    dex.deposit(100, linkTicker, { from: accounts[1] });
+    dex.deposit(200, linkTicker, { from: accounts[1] });
     // account 1 create a sell limit order
     dex.createLimitOrder(1, linkTicker, 1, 100, { from: accounts[1] });
     // check ETH balance before
@@ -141,30 +141,56 @@ contract("Dex", async (accounts) => {
   });
 
   it("ensures the TOKEN balances of the limit order sellers should decrease by the filled amount", async () => {
-    await link.approve(dex.address, 1000);
-    await dex.addToken(linkTicker, link.address, { from: accounts[0] });
-    await dex.deposit(200, linkTicker);
+    //make sure orderbook is empty
+    let orderBook = await dex.getOrders(linkTicker, 1);
+    assert(orderBook.length == 0, "Orderbook needs to be empty at this point");
 
-    await dex.createMarketOrder(1, linkTicker, 100);
+    // account[1] has some LINK there, so no need to add more
+    // account[2] approves and deposits some LINK
+    await link.approve(dex.address, 1000, {from:  accounts[2]});
+    await dex.deposit(100, linkTicker, {from : accounts[2]});
 
-    const linkBalance = await dex.balances(accounts[0], linkTicker);
+    // accounts [1] and [2] create a limit order
+    await dex.createLimitOrder(1, linkTicker, 1, 300, {from: accounts[1]});
+    await dex.createLimitOrder(1, linkTicker, 1, 400, {from : accounts[2]});
 
-    assert(linkBalance == 200 - 100);
+    // check LINK balance for accounts [1] and [2]
+    let balanceBefore1 = await dex.balances(accounts[1], linkTicker);
+    let balanceBefore2 = await dex.balances(accounts[2], linkTicker);
+
+    // account[0] deposits some ETH
+    await dex.depositEth({value:  1000});
+
+    // account[0] creates a BUY market order to buy all of [1] and [2]
+    await dex.createMarketOrder(0, linkTicker, 2);
+
+    // check LINK balance for accounts [1] and [2] after the transaction
+    let balanceAfter1 = await dex.balances(accounts[1], linkTicker);
+    let balanceAfter2 = await dex.balances(accounts[2], linkTicker);
+
+    // assert that the LINK balance before is balance after minus amount  
+    assert(balanceBefore1 - 1 == balanceAfter1);
+    assert(balanceBefore2 - 1 == balanceAfter2);
+
   });
 
   it("should remove filled orders from the orderbook", async () => {
-    // create buy order
-    await dex.depositEth({ value: 100 });
-    await dex.createMarketOrder(0, linkTicker, 20);
     // create sell order
-    await link.approve(dex.address, 1000);
-    await dex.addToken(linkTicker, link.address, { from: accounts[0] });
-    await dex.deposit(200, linkTicker);
-    await dex.createMarketOrder(1, linkTicker, 20);
+    await link.approve(dex.address, 100, {from: accounts[1]});
+    await dex.deposit(50, linkTicker, {from: accounts[1]});
+    await dex.createLimitOrder(1, linkTicker, 2, 50, {from: accounts[1]});
+
+    // create buy order
+    await dex.depositEth({ value: 200 });
+    await dex.createMarketOrder(0, linkTicker, 2);
+
     // define buy and sell orderbook arrays
     const buyBook = await dex.getOrders(linkTicker, 0);
     const sellBook = await dex.getOrders(linkTicker, 1);
+
     // since orders are matching they should be removed
-    assert(buyBook.length == 0 && sellBook.length == 0);
+    assert(buyBook.length == 0 && sellBook.length == 0, "both buy and sell order books should be empty at this point ");
   });
+
+  
 });
