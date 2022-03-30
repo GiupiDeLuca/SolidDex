@@ -35,9 +35,9 @@ contract("Dex", async (accounts) => {
   //   });
   ////////// VERSION 2 ///////////
   it("should throw an error when creating a SELL market order without enough token balance", async () => {
-    const balance = await dex.balances(accounts[0], linkTicker);
+    let balance = await dex.balances(accounts[0], linkTicker);
     assert.equal(balance.toNumber(), 0, "Initial TOKEN balance is not zero");
-    truffleAssert.reverts(await dex.createMarketOrder(1, linkTicker, 10));
+    await truffleAssert.reverts(dex.createMarketOrder(1, linkTicker, 10));
   });
   /////////////////////////////////
 
@@ -49,17 +49,16 @@ contract("Dex", async (accounts) => {
   //   });
   //////////////// VERSION 2 /////////////
   it("should throw an error when creating a BUY order without enough ETH", async () => {
-    const balance = await dex.balances(
+    let balance = await dex.balances(
       accounts[0],
       web3.utils.utf8ToHex("ETH")
     );
     assert.equal(balance.toNumber(), 0, "ETH balance is not zero");
-    truffleAssert.reverts(await dex.createMarketOrder(0, linkTicker, 10));
+    await truffleAssert.reverts(dex.createMarketOrder(0, linkTicker, 10));
   });
   ////////////////////////////////////////
 
   it("allows market orders to be sumbitted even if orderbook is empty", async () => {
-    const orders = await dex.getOrders(linkTicker, 0);
     await dex.depositEth({ value: 100000 });
     const orderBook = await dex.getOrders(linkTicker, 0);
     assert(orderBook.length == 0, "Orderbook is not empty");
@@ -105,8 +104,8 @@ contract("Dex", async (accounts) => {
 
   it("ensures market orders should be filled until orderbook is empty", async () => {
     // create more limit orders to populate the sell order book
-    dex.createLimitOrder(1, linkTicker, 5, 300, { from: accounts[1] });
-    dex.createLimitOrder(1, linkTicker, 5, 400, { from: accounts[2] });
+    await dex.createLimitOrder(1, linkTicker, 5, 300, { from: accounts[1] });
+    await dex.createLimitOrder(1, linkTicker, 5, 400, { from: accounts[2] });
     // check the balance of the buyer before buying
     let buyerBalanceBefore = await dex.balances(accounts[0], linkTicker);
     // create a market order for the buyer, whose amount surpasses the orders in the sell book
@@ -119,18 +118,18 @@ contract("Dex", async (accounts) => {
 
   it("ensures the ETH balance of the buyer decreases by the corresponding filled amount", async () => {
     // account 1 approves dex
-    link.approve(dex.address, 200, { from: accounts[1] });
+    await link.approve(dex.address, 200, { from: accounts[1] });
     // account 1 deposits in dex
-    dex.deposit(200, linkTicker, { from: accounts[1] });
+    await dex.deposit(200, linkTicker, { from: accounts[1] });
     // account 1 create a sell limit order
-    dex.createLimitOrder(1, linkTicker, 1, 100, { from: accounts[1] });
+    await dex.createLimitOrder(1, linkTicker, 1, 100, { from: accounts[1] });
     // check ETH balance before
     let buyerBalanceBefore = await dex.balances(
       accounts[0],
       web3.utils.utf8ToHex("ETH")
     );
     // account 0 creates a buy order (already deposited a bunch in the functions above)
-    dex.createMarketOrder(0, linkTicker, 1);
+    await dex.createMarketOrder(0, linkTicker, 1);
     // check ETh balance after
     let buyerBalanceAfter = await dex.balances(
       accounts[0],
