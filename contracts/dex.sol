@@ -24,6 +24,7 @@ contract Dex is Wallet {
         bytes32 ticker;
         uint amount;
         uint price;
+        uint filled;
     }
 
     mapping(bytes32 => mapping(uint => Order[])) public orderBook;
@@ -45,7 +46,7 @@ contract Dex is Wallet {
         uint orderId = _orderIds.current();
 
         orders.push(
-            Order(orderId, msg.sender, _side, _ticker, _amount, _price)
+            Order(orderId, msg.sender, _side, _ticker, _amount, _price, 0)
         );
 
         uint i = orders.length > 0 ? orders.length - 1 : 0;
