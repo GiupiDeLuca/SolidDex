@@ -96,18 +96,18 @@ contract Dex is Wallet {
             // Verify the buyer has enough ETH to cover the purchase
 
             if (_side == Side.BUY) {
-                if (orders[i].amount == _amount) {
-                    require (balances[msg.sender]["ETH"] >= orders[i].amount.mul(orders[i].price));
-                    balances[msg.sender]["ETH"] = balances[msg.sender]["ETH"].sub(_amount.mul(orders[i].price));
-                    balances[msg.sender][_ticker] = balances[msg.sender][_ticker].add(_amount);
-                    balances[orders[i].trader]["ETH"] = balances[orders[i].trader]["ETH"].add(_amount.mul(orders[i].price));
-                    balances[orders[i].trader][_ticker] = balances[orders[i].trader][_ticker].sub(_amount);
-                    orders[i].filled = _amount;
-                    totalFilled = _amount;
-                    orders[i].amount = 0;
-                } else if (orders[i].amount > _amount) {
-                    
-                } else {}
+                // if (orders[i].amount >= _amount) {
+                //     orders[i].filled += _amount;
+                // } else {
+                //     orders[i].filled = orders[i].amount;
+                // }
+                orders[i].amount >= _amount ? orders[i].filled += _amount : orders[i].filled = orders[i].amount;
+                require (balances[msg.sender]["ETH"] >= _amount.mul(orders[i].price));
+                balances[msg.sender]["ETH"] = balances[msg.sender]["ETH"].sub(_amount.mul(orders[i].price));
+                balances[msg.sender][_ticker] = balances[msg.sender][_ticker].add(_amount);
+                balances[orders[i].trader]["ETH"] = balances[orders[i].trader]["ETH"].add(_amount.mul(orders[i].price));
+                balances[orders[i].trader][_ticker] = balances[orders[i].trader][_ticker].sub(_amount);
+                totalFilled += orders[i].filled;
             }
             
         }
