@@ -89,14 +89,30 @@ contract Dex is Wallet {
 
         for (uint i = 0; i < orders.length && totalFilled < _amount; i ++) {
 
-            // how much can we fill from orders[i]
-            //Update totalFilled
+            // How much can we fill from orders[i]
+            // Update totalFilled
 
-            //Execute the trade and shift balances between buyer and seller
-            //Verify the buyer has enough ETH to cover the purchase
+            // Execute the trade and shift balances between buyer and seller
+            // Verify the buyer has enough ETH to cover the purchase
+
+            if (_side == Side.BUY) {
+                if (orders[i].amount == _amount) {
+                    require (balances[msg.sender]["ETH"] >= orders[i].amount.mul(orders[i].price));
+                    balances[msg.sender]["ETH"] = balances[msg.sender]["ETH"].sub(_amount.mul(orders[i].price));
+                    balances[msg.sender][_ticker] = balances[msg.sender][_ticker].add(_amount);
+                    balances[orders[i].trader]["ETH"] = balances[orders[i].trader]["ETH"].add(_amount.mul(orders[i].price));
+                    balances[orders[i].trader][_ticker] = balances[orders[i].trader][_ticker].sub(_amount);
+                    orders[i].filled = _amount;
+                    totalFilled = _amount;
+                    orders[i].amount = 0;
+                } else if (orders[i].amount > _amount) {
+                    
+                } else {}
+            }
+            
         }
 
-        // loop through the orders array and remove the 100 % filled orders
+        // Loop through the orders array and remove the 100 % filled orders
 
     }
 
