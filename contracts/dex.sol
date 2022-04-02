@@ -77,6 +77,27 @@ contract Dex is Wallet {
 
     }
 
-    function createMarketOrder (Side _side, bytes32 _ticker, uint _amount) public {}
+    function createMarketOrder (Side _side, bytes32 _ticker, uint _amount) public {
+
+        if (_side == Side.SELL) {
+            require (balances[msg.sender][_ticker] >= _amount, "Insufficient balance");
+        }
+
+        Order[] storage orders = orderBook[_ticker][uint(_side == Side.BUY ? 1 : 0)];
+
+        uint totalFilled; 
+
+        for (uint i = 0; i < orders.length && totalFilled < _amount; i ++) {
+
+            // how much can we fill from orders[i]
+            //Update totalFilled
+
+            //Execute the trade and shift balances between buyer and seller
+            //Verify the buyer has enough ETH to cover the purchase
+        }
+
+        // loop through the orders array and remove the 100 % filled orders
+
+    }
 
 }
