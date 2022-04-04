@@ -111,7 +111,12 @@ contract Dex is Wallet {
 
         }
 
-        // Loop through the orders array and remove the 100 % filled orders
+       while (orders.length > 0 && orders[0].amount == orders[0].filled) {
+           for (uint i = 0; i < orders.length -1; i ++) {
+               orders[i] = orders[i + 1];  
+           }
+           orders.pop();
+       }
 
     }
 
