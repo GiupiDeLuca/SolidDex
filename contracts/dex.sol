@@ -101,13 +101,15 @@ contract Dex is Wallet {
                 // } else {
                 //     orders[i].filled = orders[i].amount;
                 // }
-                orders[i].amount >= _amount ? orders[i].filled += _amount : orders[i].filled = orders[i].amount;
+                // orders[i].amount >= _amount ? orders[i].filled += _amount : orders[i].filled = orders[i].amount;
+                uint canBeFilled = orders[i].amount - orders[i].filled;
+                canBeFilled >= _amount ? orders[i].filled += _amount : orders[i].filled += canBeFilled;
                 require (balances[msg.sender]["ETH"] >= _amount.mul(orders[i].price));
-                balances[msg.sender]["ETH"] = balances[msg.sender]["ETH"].sub(_amount.mul(orders[i].price));
-                balances[msg.sender][_ticker] = balances[msg.sender][_ticker].add(_amount);
-                balances[orders[i].trader]["ETH"] = balances[orders[i].trader]["ETH"].add(_amount.mul(orders[i].price));
-                balances[orders[i].trader][_ticker] = balances[orders[i].trader][_ticker].sub(_amount);
-                totalFilled += orders[i].filled;
+                balances[msg.sender]["ETH"] = balances[msg.sender]["ETH"].sub(canBeFilled.mul(orders[i].price));
+                balances[msg.sender][_ticker] = balances[msg.sender][_ticker].add(canBeFilled);
+                balances[orders[i].trader]["ETH"] = balances[orders[i].trader]["ETH"].add(canBeFilled.mul(orders[i].price));
+                balances[orders[i].trader][_ticker] = balances[orders[i].trader][_ticker].sub(canBeFilled);
+                totalFilled += canBeFilled;
             }
             
         }
