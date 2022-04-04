@@ -102,8 +102,9 @@ contract Dex is Wallet {
                 //     orders[i].filled = orders[i].amount;
                 // }
                 // orders[i].amount >= _amount ? orders[i].filled += _amount : orders[i].filled = orders[i].amount;
+                uint leftToFill = _amount.sub(totalFilled);
                 uint canBeFilled = orders[i].amount - orders[i].filled;
-                canBeFilled >= _amount ? orders[i].filled += _amount : orders[i].filled += canBeFilled;
+                canBeFilled >= leftToFill ? orders[i].filled += leftToFill : orders[i].filled += canBeFilled;
                 require (balances[msg.sender]["ETH"] >= _amount.mul(orders[i].price));
                 balances[msg.sender]["ETH"] = balances[msg.sender]["ETH"].sub(canBeFilled.mul(orders[i].price));
                 balances[msg.sender][_ticker] = balances[msg.sender][_ticker].add(canBeFilled);
