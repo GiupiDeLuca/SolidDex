@@ -88,30 +88,27 @@ contract Dex is Wallet {
         uint totalFilled; 
 
         for (uint i = 0; i < orders.length && totalFilled < _amount; i ++) {
-
-            // How much can we fill from orders[i]
-            // Update totalFilled
-
-            // Execute the trade and shift balances between buyer and seller
-            // Verify the buyer has enough ETH to cover the purchase
+                
+            uint leftToFill = _amount.sub(totalFilled);
+            uint canBeFilled = orders[i].amount.sub(orders[i].filled);
+            canBeFilled >= leftToFill ? orders[i].filled += leftToFill : orders[i].filled += canBeFilled;
+            totalFilled += canBeFilled;
 
             if (_side == Side.BUY) {
-                // if (orders[i].amount >= _amount) {
-                //     orders[i].filled += _amount;
-                // } else {
-                //     orders[i].filled = orders[i].amount;
-                // }
-                // orders[i].amount >= _amount ? orders[i].filled += _amount : orders[i].filled = orders[i].amount;
-                uint leftToFill = _amount.sub(totalFilled);
-                uint canBeFilled = orders[i].amount - orders[i].filled;
-                canBeFilled >= leftToFill ? orders[i].filled += leftToFill : orders[i].filled += canBeFilled;
                 require (balances[msg.sender]["ETH"] >= _amount.mul(orders[i].price));
                 balances[msg.sender]["ETH"] = balances[msg.sender]["ETH"].sub(canBeFilled.mul(orders[i].price));
                 balances[msg.sender][_ticker] = balances[msg.sender][_ticker].add(canBeFilled);
                 balances[orders[i].trader]["ETH"] = balances[orders[i].trader]["ETH"].add(canBeFilled.mul(orders[i].price));
                 balances[orders[i].trader][_ticker] = balances[orders[i].trader][_ticker].sub(canBeFilled);
-                totalFilled += canBeFilled;
+            } else if (_side == Side.SELL) {
+                balances[msg.sender]["ETH"] = balances[msg.sender]["ETH"].add(canBeFilled.mul(orders[i].price));
+                balances[msg.sender][_ticker] = balances[msg.sender][_ticker].sub(canBeFilled);
+                balances[orders[i].trader]["ETH"] = balances[orders[i].trader]["ETH"].sub(canBeFilled.mul(orders[i].price));
+                balances[orders[i].trader][_ticker] = balances[orders[i].trader][_ticker].add(canBeFilled);
             }
+            
+                
+            
             
         }
 
