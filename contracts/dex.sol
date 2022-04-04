@@ -91,25 +91,24 @@ contract Dex is Wallet {
                 
             uint leftToFill = _amount.sub(totalFilled);
             uint canBeFilled = orders[i].amount.sub(orders[i].filled);
-            canBeFilled >= leftToFill ? orders[i].filled += leftToFill : orders[i].filled += canBeFilled;
-            totalFilled += canBeFilled;
+            uint filled = canBeFilled >= leftToFill ? leftToFill : canBeFilled;
+            // canBeFilled >= leftToFill ? orders[i].filled += leftToFill : orders[i].filled += canBeFilled;
+            orders[i].filled = orders[i].filled.add(filled);
+            totalFilled = totalFilled.add(filled);
 
             if (_side == Side.BUY) {
-                require (balances[msg.sender]["ETH"] >= _amount.mul(orders[i].price));
-                balances[msg.sender]["ETH"] = balances[msg.sender]["ETH"].sub(canBeFilled.mul(orders[i].price));
-                balances[msg.sender][_ticker] = balances[msg.sender][_ticker].add(canBeFilled);
-                balances[orders[i].trader]["ETH"] = balances[orders[i].trader]["ETH"].add(canBeFilled.mul(orders[i].price));
-                balances[orders[i].trader][_ticker] = balances[orders[i].trader][_ticker].sub(canBeFilled);
+                require (balances[msg.sender]["ETH"] >= filled.mul(orders[i].price));
+                balances[msg.sender]["ETH"] = balances[msg.sender]["ETH"].sub(filled.mul(orders[i].price));
+                balances[msg.sender][_ticker] = balances[msg.sender][_ticker].add(filled);
+                balances[orders[i].trader]["ETH"] = balances[orders[i].trader]["ETH"].add(filled.mul(orders[i].price));
+                balances[orders[i].trader][_ticker] = balances[orders[i].trader][_ticker].sub(filled);
             } else if (_side == Side.SELL) {
-                balances[msg.sender]["ETH"] = balances[msg.sender]["ETH"].add(canBeFilled.mul(orders[i].price));
-                balances[msg.sender][_ticker] = balances[msg.sender][_ticker].sub(canBeFilled);
-                balances[orders[i].trader]["ETH"] = balances[orders[i].trader]["ETH"].sub(canBeFilled.mul(orders[i].price));
-                balances[orders[i].trader][_ticker] = balances[orders[i].trader][_ticker].add(canBeFilled);
+                balances[msg.sender]["ETH"] = balances[msg.sender]["ETH"].add(filled.mul(orders[i].price));
+                balances[msg.sender][_ticker] = balances[msg.sender][_ticker].sub(filled);
+                balances[orders[i].trader]["ETH"] = balances[orders[i].trader]["ETH"].sub(filled.mul(orders[i].price));
+                balances[orders[i].trader][_ticker] = balances[orders[i].trader][_ticker].add(filled);
             }
-            
-                
-            
-            
+
         }
 
         // Loop through the orders array and remove the 100 % filled orders
